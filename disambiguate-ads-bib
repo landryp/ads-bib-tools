@@ -31,7 +31,7 @@ while IFS= read -r name && IFS= read -r title <&3
 done < grep-names.tmp 3< grep-titles.tmp
 
 grep -in '@article{.*,' $bibfile | cut -d : -f 1 > grep-names.tmp
-grep -ioP '@article{\K.*,' ads.bib | tr -d "\-\"{}:,~#%' " > grep-titles.tmp
+grep -ioP '@article{\K.*,' $bibfile | tr -d "\-\"{}:,~#%' " > grep-titles.tmp
 while IFS= read -r name && IFS= read -r title <&3
     do sed -i "$name s/.*/@ARTICLE{$title,/" $bibfile
 done < grep-names.tmp 3< grep-titles.tmp
