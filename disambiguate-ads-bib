@@ -40,7 +40,7 @@ test=$(grep -i '@article{.*,' $bibfile | sort | uniq -d)
 
 if [[ $test = *[![:space:]]* ]]
     then echo 'WARNING: possible duplicate entries found, PLEASE RESOLVE:'; echo $(grep -n "$(grep -i '@article{.*,' $bibfile | sort | uniq -d)" $bibfile)
-    else echo 'all entries disambiguated'; exit 0
+    else echo 'all entries disambiguated'
 fi
 
 rm grep-names.tmp grep-titles.tmp grep-suffixes.tmp
