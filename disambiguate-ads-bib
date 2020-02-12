@@ -1,0 +1,46 @@
+#!/bin/bash
+
+bibfile=$1
+
+test=$(grep -i '@article{.*,' $bibfile | sort | uniq -d)
+
+if [[ $test = *[![:space:]]* ]]
+    then echo 'working on ambiguous entries...'
+    else echo 'no ambiguous entries'; exit 0
+fi
+
+grep -n "$(grep -i '@article{.*,' $bibfile | sort | uniq -d)" $bibfile | cut -d : -f 1 > grep-names.tmp
+
+grep -in 'title = \"{.*}\",' $bibfile | cut -d : -f 1 > grep-titles.tmp
+
+while IFS= read -r name
+    do while IFS= read -r title
+        do
+            if [ $title -gt $name ]
+                then echo $title; break
+            fi
+    done < grep-titles.tmp
+done < grep-names.tmp > grep-suffixes.tmp
+
+while IFS= read -r line
+    do awk -v l="$line" 'FNR==l{print $3,$4}' $bibfile
+done < grep-suffixes.tmp | tr -d "\-\"{}:,~#%' " > grep-titles.tmp
+
+while IFS= read -r name && IFS= read -r title <&3
+    do sed -i "$name s/,\$/$title,/" $bibfile
+done < grep-names.tmp 3< grep-titles.tmp
+
+grep -in '@article{.*,' $bibfile | cut -d : -f 1 > grep-names.tmp
+grep -ioP '@article{\K.*,' ads.bib | tr -d "\-\"{}:,~#%' " > grep-titles.tmp
+while IFS= read -r name && IFS= read -r title <&3
+    do sed -i "$name s/.*/@ARTICLE{$title,/" $bibfile
+done < grep-names.tmp 3< grep-titles.tmp
+
+test=$(grep -i '@article{.*,' $bibfile | sort | uniq -d)
+
+if [[ $test = *[![:space:]]* ]]
+    then echo 'WARNING: possible duplicate entries found, PLEASE RESOLVE:'; echo $(grep -n "$(grep -i '@article{.*,' $bibfile | sort | uniq -d)" $bibfile)
+    else echo 'all entries disambiguated'; exit 0
+fi
+
+rm grep-names.tmp grep-titles.tmp grep-suffixes.tmp
